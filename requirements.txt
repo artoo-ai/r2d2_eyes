@@ -1,2 +1,4 @@
 opencv-python
 adafruit-circuitpython-servokit
+adafruit-circuitpython-pca9685
+rpi.gpio

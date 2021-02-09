@@ -1,11 +1,40 @@
 import cv2
 import numpy as np
-#from PCA9685 import PCA9685
+from adafruit_pca9685 import PCA9685
+
+# For LEDs
+from board import SCL, SDA
+import busio
+
+# For Servo
+from adafruit_servokit import ServoKit
+kit = ServoKit(channels=16)
+#import adafruit_motor.servo
+#servo = adafruit_motor.servo.Servo(0)
+
+# Create the I2C bus interface
+i2c_bus = busio.I2C(SCL, SDA)
+pca = PCA9685(i2c_bus)
+
+# Set the PWM frequency
+# Specific to servo
+pca.frequency = 50
+
+#pwm = PCA9685(0x40)
+#pwm.setPWMFreq(50) # Servo Specific
+#pwm.setServoPosition(0, 90)
 
 cap = cv2.VideoCapture(0)
 
-position = 90 #degrees
-x_midpoint = 0
+# Get an initial size for frame
+_, frame = cap.read()
+rows, cols, _ = frame.shape
+
+# Start position of the servo
+position = 90 
+kit.servo[0].angle = position
+center = int(cols/2)
+x_midpoint = int(cols/2)
 
 while True:
     _, frame = cap.read()
@@ -47,6 +76,20 @@ while True:
     
     if key == 27:
         break
+    
+    # MOve servo to keep object in the center
+    if x_midpoint < center - 30:
+        position += 1
+    elif x_midpoint > center + 30:
+        position -= 1
+    
+    # Ensure to not exceeds min and max
+    if position > 180:
+        position = 180
+    if position < 0:
+        position = 0
+    
+    kit.servo[0].angle = position
     
 cap.release()
 cv2.destroyAllWindows()
